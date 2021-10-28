@@ -21,8 +21,8 @@ class DCMTrajectoryGenerator:
     def getDCMTrajectory(self):
         self.findFinalDCMPositionsForEachStep() #or we can have another name for this function based on equation (8) of the jupyter notebook: for example findInitialDCMPositionOfEachStep()
         self.planDCMForSingleSupport() #Plan preliminary DCM trajectory (DCM without considering double support
-        self.findBoundryConditionsOfDCMDoubleSupport() #Find the boundary conditions for double support 
-        self.embedDoubleSupportToDCMTrajectory() #Do interpolation for double support and embed double support phase trajectory to the preliminary trajectory 
+        # self.findBoundryConditionsOfDCMDoubleSupport() #Find the boundary conditions for double support 
+        # self.embedDoubleSupportToDCMTrajectory() #Do interpolation for double support and embed double support phase trajectory to the preliminary trajectory 
         return self.DCM
 
 
@@ -72,8 +72,8 @@ class DCMTrajectoryGenerator:
             time = iter * (1/self.numberOfSamplesPerSecond) #Finding the time of a corresponding control cycle
             i =  iter // (int(self.stepDuration*self.numberOfSamplesPerSecond))#Finding the number of corresponding step of walking
             t =  time - (self.stepDuration*i) #The “internal” step time t is reset at the beginning of each step
-            self.DCM.append(  self.CoPTrajectory[i] + (self.DCMForEndOfStep[i]  - self.CoPTrajectory[i] ) * np.exp(self.omega * (t-self.stepDuration)) )#Use equation (9) for finding the DCM trajectory
-        pass
+            self.DCM.append(  self.CoP[i] + (self.DCMForEndOfStep[i]  - self.CoP[i] ) * np.exp(self.omega * (t-self.stepDuration)) )#Use equation (9) for finding the DCM trajectory
+        self.DCM = np.array(self.DCM)
 
 
     def findBoundryConditionsOfDCMDoubleSupport(self):
@@ -131,12 +131,12 @@ class DCMTrajectoryGenerator:
         #In the following part we will replace the double support trajectories for the corresponding double support time-window  in the preliminary DCM trajectory
         DCMCompleteTrajectory = np.array(self.DCM)#First we put preliminary DCM trajectory into a new array and in th following we will replace the double support part 
         
-        for stepNumber in range(self.CoP.shape[0]):
-            if stepNumber == 0:
-                #the first step starts with double support and notice double support duration is not the same as other steps
-                DCMCompleteTrajectory[                                ] = listOfDoubleSupportTrajectories[stepNumber][:]#fill the corresponding interval for DCM index for double support part
-            else: 
-                DCMCompleteTrajectory[                                ] = listOfDoubleSupportTrajectories[stepNumber][:]
+        # for stepNumber in range(self.CoP.shape[0]):
+        #     # if stepNumber == 0:
+        #     #     #the first step starts with double support and notice double support duration is not the same as other steps
+        #     #     DCMCompleteTrajectory[                                ] = listOfDoubleSupportTrajectories[stepNumber][:]#fill the corresponding interval for DCM index for double support part
+        #     # else: 
+            #     DCMCompleteTrajectory[                                ] = listOfDoubleSupportTrajectories[stepNumber][:]
         
         self.DCM = DCMCompleteTrajectory
         temp = np.array(self.DCM)
