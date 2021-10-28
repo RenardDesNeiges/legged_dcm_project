@@ -52,7 +52,7 @@ class DCMTrajectoryGenerator:
         self.DCMForEndOfStep[-1] = # capturability constraint(3rd item of jupyter notebook steps for DCM motion planning section)
 
         for index in range(np.size(self.CoP,0)-2,-1,-1):
-            self.DCMForEndOfStep[index] = #equation 7 of the jupyter notebook
+            self.DCMForEndOfStep[index] = self.COP + (self.DCMForEndOfStep[index-1] - self.COP) * np.exp(self.omega * self.stepDuration) #equation 7 of the jupyter notebook
         pass
 
     def calculateCoPTrajectory(self):
