@@ -33,9 +33,9 @@ class DCMTrajectoryGenerator:
         self.CoM[0] = com_ini
         self.CoMDot[0] = 0
         for kk in range(0,self.CoM.shape[0]-1):
-            self.CoMDot[kk+1]= #equation (3) in jupyter notebook
-            self.CoM[kk+1]= #Simple euler numerical integration
-            self.CoM[kk+1][2]=self.CoMHeight
+            # self.CoMDot[kk+1]= #equation (3) in jupyter notebook
+            # self.CoM[kk+1]= #Simple euler numerical integration
+            # self.CoM[kk+1][2]=self.CoMHeight
         return self.CoM
 
 
@@ -52,7 +52,7 @@ class DCMTrajectoryGenerator:
         self.DCMForEndOfStep[-1] = # capturability constraint(3rd item of jupyter notebook steps for DCM motion planning section)
 
         for index in range(np.size(self.CoP,0)-2,-1,-1):
-            self.DCMForEndOfStep[index] = #equation 7 of the jupyter notebook
+            self.DCMForEndOfStep[index] = self.COP + (self.DCMForEndOfStep[index-1] - self.COP) * np.exp(self.omega * self.stepDuration) #equation 7 of the jupyter notebook
         pass
 
     def calculateCoPTrajectory(self):
