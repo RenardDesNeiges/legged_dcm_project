@@ -47,12 +47,12 @@ class DCMTrajectoryGenerator:
         self.footPrints = footPrints #setting footprint positions. Note: The footprint has an offset with CoP positions 
 
 
-    def findFinalDCMPositionsForEachStep(self):# Finding Final(=initial for previous, refer to equation 8) dcm for a step
-        self.DCMForEndOfStep = np.copy(self.CoP) #initialization for having same shape
-        self.DCMForEndOfStep[-1] = # capturability constraint(3rd item of jupyter notebook steps for DCM motion planning section)
+    def findFinalDCMPositionsForEachStep(self):  # Finding Final(=initial for previous, refer to equation 8) dcm for a step
+        self.DCMForEndOfStep = np.copy(self.CoP) # initialization for having same shape
+        self.DCMForEndOfStep[-1] = self.CoP[-1]  # capturability constraint(3rd item of jupyter notebook steps for DCM motion planning section)
 
         for index in range(np.size(self.CoP,0)-2,-1,-1):
-            self.DCMForEndOfStep[index] = self.COP + (self.DCMForEndOfStep[index-1] - self.COP) * np.exp(self.omega * self.stepDuration) #equation 7 of the jupyter notebook
+            self.DCMForEndOfStep[index] = self.CoP[index] + (self.DCMForEndOfStep[index+1] - self.CoP[index]) * np.exp(-self.omega * self.stepDuration) #equation 7 of the jupyter notebook
         pass
 
     def calculateCoPTrajectory(self):
