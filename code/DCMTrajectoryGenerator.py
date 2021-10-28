@@ -61,32 +61,18 @@ class DCMTrajectoryGenerator:
         self.DCMVelocity[0] = 0
         self.CoPTrajectory[0] = self.CoP[0]
         for kk in range(0,self.CoM.shape[0]-1):
-<<<<<<< HEAD
             self.DCMVelocity[kk+1]=(self.DCM[kk+1]-self.DCM[kk]) / self.timeStep #Numerical differentiation for solving DCM Velocity
             self.CoPTrajectory[kk+1]= self.DCM[kk+1]-self.DCMVelocity[kk+1]/self.omega #Use equation (10) to find CoP by having DCM and DCM Velocity
-=======
-            self.DCMVelocity[kk+1]= (1/self.timeStep) * (self.DCM[kk+1]-self.DCM[kk]) #Numerical differentiation for solving DCM Velocity
-            self.CoPTrajectory[kk+1]= self.DCM[kk+1] - (1/self.omega)*self.DCMVelocity[kk+1] #Use equation (10) to find CoP by having DCM and DCM Velocity
-
->>>>>>> 43fc61f81ddef54b9088cc0e1fa241fae6ecf04b
         pass
 
 
     def planDCMForSingleSupport(self): #The output of this function is a DCM vector with a size of (int(self.numberOfSamplesPerSecond* self.stepDuration * self.CoP.shape[0])) that is number of sample points for whole time of walking
         for iter in range(int(self.numberOfSamplesPerSecond* self.stepDuration * self.CoP.shape[0])):# We iterate on the whole simulation control cycles:  
-<<<<<<< HEAD
             time =  iter*(1/self.numberOfSamplesPerSecond)#Finding the time of a corresponding control cycle
             i = iter//(int(self.stepDuration*self.numberOfSamplesPerSecond)) #Finding the number of corresponding step of walking
             t =  time-self.stepDuration*i#The “internal” step time t is reset at the beginning of each step
             self.DCM.append(self.CoP[]) #Use equation (9) for finding the DCM trajectory
         pass
-=======
-            time = iter * (1/self.numberOfSamplesPerSecond) #Finding the time of a corresponding control cycle
-            i =  iter // (int(self.stepDuration*self.numberOfSamplesPerSecond))#Finding the number of corresponding step of walking
-            t =  time - (self.stepDuration*i) #The “internal” step time t is reset at the beginning of each step
-            self.DCM.append(  self.CoP[i] + (self.DCMForEndOfStep[i]  - self.CoP[i] ) * np.exp(self.omega * (t-self.stepDuration)) )#Use equation (9) for finding the DCM trajectory
-        self.DCM = np.array(self.DCM)
->>>>>>> 43fc61f81ddef54b9088cc0e1fa241fae6ecf04b
 
 
     def findBoundryConditionsOfDCMDoubleSupport(self):
@@ -94,7 +80,6 @@ class DCMTrajectoryGenerator:
         self.finalDCMForDS = np.zeros((np.size(self.CoP,0),3))
         self.initialDCMVelocityForDS = np.zeros((np.size(self.CoP,0),3))
         self.finalDCMVelocityForDS = np.zeros((np.size(self.CoP,0),3))
-<<<<<<< HEAD
         for stepNumber in range(np.size(self.CoP,0)):
             if stepNumber == 0: #Boundary conditions of double support for the first step(equation 11b and 12b in Jupyter notebook)
                 self.initialDCMForDS[stepNumber] =  self.DCM[stepNumber]#At the first step the initial dcm for double support is equal to the general initial DCM position, use (11b)
@@ -106,19 +91,6 @@ class DCMTrajectoryGenerator:
                 self.finalDCMForDS[stepNumber] =  #use equation(12)
                 self.initialDCMVelocityForDS[stepNumber] = #You can find DCM velocity at each time by having DCM position for that time and the corresponding CoP position, see euqation (4)
                 self.finalDCMVelocityForDS[stepNumber] =  #You can find DCM velocity at each time by having DCM position for that time and the corresponding CoP position, see euqation (4)
-=======
-        # for stepNumber in range(np.size(self.CoP,0)):
-        #     if stepNumber == 0: #Boundary conditions of double support for the first step(equation 11b and 12b in Jupyter notebook)
-        #         self.initialDCMForDS[stepNumber] =  #At the first step the initial dcm for double support is equal to the general initial DCM position, use (11b)
-        #     #     self.finalDCMForDS[stepNumber] =  # use (12b)
-        #     #     self.initialDCMVelocityForDS[stepNumber] =  #You can find DCM velocity at each time by having DCM position for that time and the corresponding CoP position, see equation (4)
-            #     self.finalDCMVelocityForDS[stepNumber] = #You can find DCM velocity at each time by having DCM position for that time and the corresponding CoP position, see euqation (4))
-            # else: #Boundary conditions of double support for all steps except first step((equation 11 and 12 in Jupyter notebook))
-            #     self.initialDCMForDS[stepNumber] =  #use equation(11)
-            #     self.finalDCMForDS[stepNumber] =  #use equation(12)
-            #     self.initialDCMVelocityForDS[stepNumber] = #You can find DCM velocity at each time by having DCM position for that time and the corresponding CoP position, see euqation (4)
-            #     self.finalDCMVelocityForDS[stepNumber] =  #You can find DCM velocity at each time by having DCM position for that time and the corresponding CoP position, see euqation (4)
->>>>>>> 43fc61f81ddef54b9088cc0e1fa241fae6ecf04b
 
         pass
     
