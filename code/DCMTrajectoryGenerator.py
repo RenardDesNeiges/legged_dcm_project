@@ -61,9 +61,8 @@ class DCMTrajectoryGenerator:
         self.DCMVelocity[0] = 0
         self.CoPTrajectory[0] = self.CoP[0]
         for kk in range(0,self.CoM.shape[0]-1):
-            self.DCMVelocity[kk+1]= (1/self.timeStep)(-0.5*self.DCM[kk]+0.5*self.DCM[kk+2]) #Numerical differentiation for solving DCM Velocity
-            self.CoPTrajectory[kk+1]= #Use equation (10) to find CoP by having DCM and DCM Velocity
-
+            self.DCMVelocity[kk+1]=(self.DCM[kk+1]-self.DCM[kk]) / self.timeStep #Numerical differentiation for solving DCM Velocity
+            self.CoPTrajectory[kk+1]= self.DCM[kk+1]-self.DCMVelocity[kk+1]/self.omega #Use equation (10) to find CoP by having DCM and DCM Velocity
         pass
 
 
