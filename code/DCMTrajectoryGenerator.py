@@ -33,9 +33,9 @@ class DCMTrajectoryGenerator:
         self.CoM[0] = com_ini
         self.CoMDot[0] = 0
         for kk in range(0,self.CoM.shape[0]-1):
-            self.CoMDot[kk+1]= #equation (3) in jupyter notebook
-            self.CoM[kk+1]= #Simple euler numerical integration
-            self.CoM[kk+1][2]=self.CoMHeight
+            # self.CoMDot[kk+1]= #equation (3) in jupyter notebook
+            # self.CoM[kk+1]= #Simple euler numerical integration
+            # self.CoM[kk+1][2]=self.CoMHeight
         return self.CoM
 
 
