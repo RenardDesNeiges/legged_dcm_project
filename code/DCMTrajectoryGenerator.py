@@ -14,15 +14,15 @@ class DCMTrajectoryGenerator:
         self.alpha = 0.5 # We have 0<alpha<1 that is used for double support simulation
         self.DCM = list("")
         self.gravityAcceleration=9.81
-        self.omega = math.sqrt(self.gravityAcceleration/self.CoMHeight ) #Omega is a constant value and is called natural frequency of linear inverted pendulum
+        self.omega = 0.3*math.sqrt(self.gravityAcceleration/self.CoMHeight ) #Omega is a constant value and is called natural frequency of linear inverted pendulum
         pass
 
 
     def getDCMTrajectory(self):
-        self.findFinalDCMPositionsForEachStep() #or we can have another name for this function based on equation (8) of the jupyter notebook: for example findInitialDCMPositionOfEachStep()
-        self.planDCMForSingleSupport() #Plan preliminary DCM trajectory (DCM without considering double support
-        self.findBoundryConditionsOfDCMDoubleSupport() #Find the boundary conditions for double support 
-        self.embedDoubleSupportToDCMTrajectory() #Do interpolation for double support and embed double support phase trajectory to the preliminary trajectory 
+        self.findFinalDCMPositionsForEachStep() # compute discrete DCM positions
+        self.planDCMForSingleSupport()          # Plan preliminary DCM trajectory (DCM without considering double support)
+        # self.findBoundryConditionsOfDCMDoubleSupport() #Find the boundary conditions for double support 
+        # self.embedDoubleSupportToDCMTrajectory() #Do interpolation for double support and embed double support phase trajectory to the preliminary trajectory 
         return self.DCM
 
 
@@ -52,7 +52,7 @@ class DCMTrajectoryGenerator:
         self.DCMForEndOfStep[-1] = self.CoP[-1]  # capturability constraint(3rd item of jupyter notebook steps for DCM motion planning section)
 
         for index in range(np.size(self.CoP,0)-2,-1,-1):
-            self.DCMForEndOfStep[index] = self.CoP[index] + (self.DCMForEndOfStep[index+1] - self.CoP[index]) * np.exp(-self.omega * self.stepDuration) #equation 7 of the jupyter notebook
+            self.DCMForEndOfStep[index] = self.CoP[index+1] + (self.DCMForEndOfStep[index+1] - self.CoP[index+1]) * np.exp(-self.omega * self.stepDuration) #equation 7
         pass
 
     def calculateCoPTrajectory(self):
@@ -72,7 +72,12 @@ class DCMTrajectoryGenerator:
             time = iter * (1/self.numberOfSamplesPerSecond) #Finding the time of a corresponding control cycle
             i =  iter // (int(self.stepDuration*self.numberOfSamplesPerSecond))#Finding the number of corresponding step of walking
             t =  time - (self.stepDuration*i) #The “internal” step time t is reset at the beginning of each step
-            self.DCM.append(  self.CoP[i] + (self.DCMForEndOfStep[i]  - self.CoP[i] ) * np.exp(self.omega * (t-self.stepDuration)) )#Use equation (9) for finding the DCM trajectory
+            
+            self.DCM.append(  
+                self.CoP[i] + \
+                    (self.DCMForEndOfStep[i]  - self.CoP[i] ) \
+                        * np.exp( self.omega * (t-self.stepDuration) ) 
+                )#Use equation (9) for finding the DCM trajectory
         self.DCM = np.array(self.DCM)
 
 
@@ -110,7 +115,7 @@ class DCMTrajectoryGenerator:
         doubleSupportInterpolationCoefficients = list('')
         for stepNumber in range(np.size(self.CoP,0)):
             if(stepNumber==0):
-                print(self.doInterpolationForDoubleSupport(self.initialDCMForDS[stepNumber], self.finalDCMForDS[stepNumber],self.initialDCMVelocityForDS[stepNumber],self.finalDCMVelocityForDS[stepNumber],self.dsTime))
+                a, b, c, d = self.doInterpolationForDoubleSupport(self.initialDCMForDS[stepNumber], self.finalDCMForDS[stepNumber],self.initialDCMVelocityForDS[stepNumber],self.finalDCMVelocityForDS[stepNumber],self.dsTime)
                 doubleSupportInterpolationCoefficients.append(np.array([a, b, c, d]).T) #Create a vector of DCM Coeffient by using the doInterpolationForDoubleSupport function. Note that the double support duration for first step is not the same as other steps 
             else:
                 a, b, c, d = self.doInterpolationForDoubleSupport(self.initialDCMForDS[stepNumber], self.finalDCMForDS[stepNumber],self.initialDCMVelocityForDS[stepNumber],self.finalDCMVelocityForDS[stepNumber],self.dsTime) #use doubleSupportInterpolationCoefficients vector
