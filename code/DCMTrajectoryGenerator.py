@@ -14,7 +14,7 @@ class DCMTrajectoryGenerator:
         self.alpha = 0.5 # We have 0<alpha<1 that is used for double support simulation
         self.DCM = list("")
         self.gravityAcceleration=9.81
-        self.omega = 0.3*math.sqrt(self.gravityAcceleration/self.CoMHeight ) #Omega is a constant value and is called natural frequency of linear inverted pendulum
+        self.omega = math.sqrt(self.gravityAcceleration/self.CoMHeight ) #Omega is a constant value and is called natural frequency of linear inverted pendulum
         pass
 
 
@@ -81,16 +81,12 @@ class DCMTrajectoryGenerator:
 
 
     def findBoundryConditionsOfDCMDoubleSupport(self):
-       
         self.initialDCMForDS = np.zeros((np.size(self.CoP,0),3))
         self.finalDCMForDS = np.zeros((np.size(self.CoP,0),3))
         self.initialDCMVelocityForDS = np.zeros((np.size(self.CoP,0),3))
         self.finalDCMVelocityForDS = np.zeros((np.size(self.CoP,0),3))
-
         for stepNumber in range(np.size(self.CoP,0)):
-             # Boundary conditions of double support for the first step(equation 11b and 12b)
-            if stepNumber == 0:
-
+            if stepNumber == 0: #Boundary conditions of double support for the first step(equation 11b and 12b in Jupyter notebook)
                 self.initialDCMForDS[stepNumber] = self.DCM[0] # eq (11b)
                 self.finalDCMForDS[stepNumber] = self.CoP[stepNumber] + \
                     (self.DCM[0] - self.CoP[stepNumber]) *np.exp(self.omega*(1-self.alpha)*self.dsTime) # eq (12b)
@@ -126,10 +122,9 @@ class DCMTrajectoryGenerator:
         d = initialDCMForDS #fourth element of P matrix
         return a, b, c, d # a b c and are the elements of the P in equation (15)
     
-    #Calculate and replace DCM position for double support with the corresponding time window of preliminary single support phase
-    def embedDoubleSupportToDCMTrajectory(self): 
-        doubleSupportInterpolationCoefficients = list('')
 
+    def embedDoubleSupportToDCMTrajectory(self): #Calculate and replace DCM position for double support with the corresponding time window of preliminary single support phase
+        doubleSupportInterpolationCoefficients = list('')
         for stepNumber in range(np.size(self.CoP,0)):
             if(stepNumber==0):
                 a, b, c, d = self.doInterpolationForDoubleSupport(\
@@ -141,44 +136,38 @@ class DCMTrajectoryGenerator:
 
                 doubleSupportInterpolationCoefficients.append([a, b, c, d]) #Create a vector of DCM Coeffient by using the doInterpolationForDoubleSupport function. Note that the double support duration for first step is not the same as other steps 
             else:
-                a, b, c, d = self.doInterpolationForDoubleSupport(\
-                                        self.initialDCMForDS[stepNumber], \
-                                        self.finalDCMForDS[stepNumber],\
-                                        self.initialDCMVelocityForDS[stepNumber],\
-                                        self.finalDCMVelocityForDS[stepNumber],\
-                                        self.dsTime)
+                a, b, c, d = self.doInterpolationForDoubleSupport(self.initialDCMForDS[stepNumber], self.finalDCMForDS[stepNumber],self.initialDCMVelocityForDS[stepNumber],self.finalDCMVelocityForDS[stepNumber],self.dsTime) #use doubleSupportInterpolationCoefficients vector
+                doubleSupportInterpolationCoefficients.append(np.array([a, b, c, d]).T)  
 
-                doubleSupportInterpolationCoefficients.append([a, b, c, d])
 
         #In the following part we will find the list of double support trajectories for all steps of walking
         listOfDoubleSupportTrajectories = list('')
         for stepNumber in range(np.size(self.CoP,0)):
-            if(stepNumber==0):#notice double support duration is not the same as other steps
-                
-                a, b, c, d = doubleSupportInterpolationCoefficients[stepNumber]
+            a, b, c, d = doubleSupportInterpolationCoefficients[stepNumber]
+            if(stepNumber==0):#notice double support duration is not the same as other steps             
                 doubleSupportTrajectory = np.zeros((int((1-self.alpha)*self.dsTime*(1/self.timeStep)),3))
-
                 for t in range(int(self.dsTime*0.5*self.numberOfSamplesPerSecond)):
                     doubleSupportTrajectory[t] = a * (t**3)+ b * (t**2) + c * t + d #use equation 16 (only the DCM position ecomponent)
-
                 listOfDoubleSupportTrajectories.append(doubleSupportTrajectory)
-
             else:
                 doubleSupportTrajectory = np.zeros((int(self.dsTime*(1/self.timeStep)),3))
                 for t in range(int(self.dsTime*self.numberOfSamplesPerSecond)):
                     doubleSupportTrajectory[t] = a * (t**3)+ b * (t**2) + c * t + d #use equation 16 (only the DCM position component)
                 listOfDoubleSupportTrajectories.append(doubleSupportTrajectory)
 
+        print(listOfDoubleSupportTrajectories)
         #In the following part we will replace the double support trajectories for the corresponding double support time-window  in the preliminary DCM trajectory
         DCMCompleteTrajectory = np.array(self.DCM)#First we put preliminary DCM trajectory into a new array and in th following we will replace the double support part 
-
+        
         for stepNumber in range(self.CoP.shape[0]):
             if stepNumber == 0:
                 #the first step starts with double support and notice double support duration is not the same as other steps
-                DCMCompleteTrajectory[0:int(0.5*self.dsTime*self.numberOfSamplesPerSecond)] = listOfDoubleSupportTrajectories[stepNumber]#fill the corresponding interval for DCM index for double support part
+                DCMCompleteTrajectory[0:int(self.alpha*self.dsTime*self.stepDuration)] = listOfDoubleSupportTrajectories[stepNumber][:]#fill the corresponding interval for DCM index for double support part
             else: 
-                t0 = int(self.stepDuration*self.numberOfSamplesPerSecond * stepNumber)
-                DCMCompleteTrajectory[t0-int(0.5*self.dsTime*self.numberOfSamplesPerSecond):t0+int(0.5*self.dsTime*self.numberOfSamplesPerSecond)] = listOfDoubleSupportTrajectories[stepNumber]#fill the corresponding interval for DCM index for double support part
+                # DCMCompleteTrajectory[] = listOfDoubleSupportTrajectories[stepNumber][:]
+                pass
         
         self.DCM = DCMCompleteTrajectory
         temp = np.array(self.DCM)
+
+        pass
