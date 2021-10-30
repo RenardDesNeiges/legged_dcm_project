@@ -82,7 +82,7 @@ class DCMTrajectoryGenerator:
         self.finalDCMVelocityForDS = np.zeros((np.size(self.CoP,0),3))
         for stepNumber in range(np.size(self.CoP,0)):
             if stepNumber == 0: #Boundary conditions of double support for the first step(equation 11b and 12b in Jupyter notebook)
-                self.initialDCMForDS[stepNumber] =  self.DCM[stepNumber]#At the first step the initial dcm for double support is equal to the general initial DCM position, use (11b)
+                self.initialDCMForDS[stepNumber] = self.DCM[stepNumber]#At the first step the initial dcm for double support is equal to the general initial DCM position, use (11b)
                 self.finalDCMForDS[stepNumber] =  self.CoP[stepNumber]+(self.DCM[stepNumber]-self.CoP[stepNumber])*np.exp(self.omega*(1-self.alpha)*self.dsTime[stepNumber])# use (12b)
                 self.initialDCMVelocityForDS[stepNumber] = self.omega*(self.DCM[stepNumber]-self.CoP[stepNumber]) #You can find DCM velocity at each time by having DCM position for that time and the corresponding CoP position, see equation (4)
                 self.finalDCMVelocityForDS[stepNumber] = #You can find DCM velocity at each time by having DCM position for that time and the corresponding CoP position, see euqation (4))
