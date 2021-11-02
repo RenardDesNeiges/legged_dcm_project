@@ -22,7 +22,7 @@ class DCMTrajectoryGenerator:
         self.findFinalDCMPositionsForEachStep() # compute discrete DCM positions
         self.planDCMForSingleSupport()          # Plan preliminary DCM trajectory (DCM without considering double support)
         self.findBoundryConditionsOfDCMDoubleSupport() #Find the boundary conditions for double support 
-        # self.embedDoubleSupportToDCMTrajectory() #Do interpolation for double support and embed double support phase trajectory to the preliminary trajectory 
+        #self.embedDoubleSupportToDCMTrajectory() #Do interpolation for double support and embed double support phase trajectory to the preliminary trajectory 
         return self.DCM
 
 
@@ -116,11 +116,11 @@ class DCMTrajectoryGenerator:
 
     def doInterpolationForDoubleSupport(self,initialDCMForDS, finalDCMForDS, initialDCMVelocityForDS, finalDCMVelocityForDS,dsTime):
         #The implementation of equation (15) of Jupyter Notebook
-        a = (2*initialDCMForDS)/(dsTime**3) - (2*finalDCMForDS)/(dsTime**3) + (initialDCMVelocityForDS)/(dsTime**2) + (finalDCMVelocityForDS)/(dsTime**2)#first element of P matrix
-        b = (3*finalDCMForDS)/(dsTime**2) - (3*initialDCMForDS)/(dsTime**2) - (2*initialDCMVelocityForDS)/dsTime - finalDCMVelocityForDS/dsTime#second element of P matrix
+        a = 2 * (initialDCMForDS - finalDCMForDS)/(dsTime**3) + (initialDCMVelocityForDS + finalDCMVelocityForDS) / (dsTime**2) #first element of P matrix
+        b = 3 * (finalDCMForDS - initialDCMForDS)/(dsTime**2) - (2*initialDCMVelocityForDS-finalDCMVelocityForDS) / dsTime #second element of P matrix
         c = initialDCMVelocityForDS #third element of P matrix
         d = initialDCMForDS #fourth element of P matrix
-        return a, b, c, d # a b c and are the elements of the P in equation (15)
+        return a, b, c, d # a b c and d are the elements of the P in equation (15)
     
 
     def embedDoubleSupportToDCMTrajectory(self): #Calculate and replace DCM position for double support with the corresponding time window of preliminary single support phase
@@ -133,7 +133,7 @@ class DCMTrajectoryGenerator:
                                         self.initialDCMVelocityForDS[stepNumber],\
                                         self.finalDCMVelocityForDS[stepNumber],\
                                         self.dsTime/2)
-
+                print([a, b, c, d])
                 doubleSupportInterpolationCoefficients.append([a, b, c, d]) #Create a vector of DCM Coeffient by using the doInterpolationForDoubleSupport function. Note that the double support duration for first step is not the same as other steps 
             else:
                 a, b, c, d = self.doInterpolationForDoubleSupport(self.initialDCMForDS[stepNumber], self.finalDCMForDS[stepNumber],self.initialDCMVelocityForDS[stepNumber],self.finalDCMVelocityForDS[stepNumber],self.dsTime) #use doubleSupportInterpolationCoefficients vector
@@ -144,6 +144,7 @@ class DCMTrajectoryGenerator:
         listOfDoubleSupportTrajectories = list('')
         for stepNumber in range(np.size(self.CoP,0)):
             a, b, c, d = doubleSupportInterpolationCoefficients[stepNumber]
+            print([a, b, c, d])
             if(stepNumber==0):#notice double support duration is not the same as other steps             
                 doubleSupportTrajectory = np.zeros((int((1-self.alpha)*self.dsTime*(1/self.timeStep)),3))
                 for t in range(int(self.dsTime*0.5*self.numberOfSamplesPerSecond)):
