@@ -14,7 +14,7 @@ class DCMTrajectoryGenerator:
         self.alpha = 0.5 # We have 0<alpha<1 that is used for double support simulation
         self.DCM = list("")
         self.gravityAcceleration=9.81
-        self.omega = 0.75*math.sqrt(self.gravityAcceleration/self.CoMHeight ) #Omega is a constant value and is called natural frequency of linear inverted pendulum
+        self.omega = math.sqrt(self.gravityAcceleration/self.CoMHeight ) #Omega is a constant value and is called natural frequency of linear inverted pendulum
         pass
 
 
