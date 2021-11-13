@@ -16,14 +16,20 @@ def walk_run(params):
     ============================================================
     """
 
-    #In the following we create an object of dynamic engine of pybullet and we connect it to the Pybullet GUI
-    phisycsClient = pybullet.connect(pybullet.GUI)
+    #In the following we create an object of dynamic engine of pybullet and use direct simulation (no GUI)
+    if params["GUI"]:
+        phisycsClient = pybullet.connect(pybullet.GUI) 
+    else:
+        phisycsClient = pybullet.connect(pybullet.DIRECT) 
+        
+        
     pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
 
     #In the following we load the urdf model of the robot and we specify the setting for the simulation
     pybullet.resetSimulation()
     planeID = pybullet.loadURDF("plane.urdf")
-    pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_RENDERING,0)
+    if params["GUI"]:
+        pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_RENDERING,0)
     pybullet.setGravity(0,0,-9.81)
     atlas=robotID = pybullet.loadURDF("atlas/atlas_v4_with_multisense.urdf", [0,0,0.93],useFixedBase = 0)
     pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_RENDERING,1)
@@ -188,8 +194,9 @@ def walk_run(params):
         # simulation step
         pybullet.stepSimulation()
         
-    velocities = np.array(velocities)
-    positions = positions
+    vel = np.array(velocities)
+    pos = np.array([*np.array(positions)[:,0]])
+    delta_time = CoPPositions.shape[0] * DCMPlanner.stepDuration
     
     filename = "vel_pos_" + str(stepDuration) + "_" + str(stepLength) + ".npy"
     filepath = "logs/" + filename
@@ -197,7 +204,10 @@ def walk_run(params):
     with open(filepath, 'wb') as f:
         np.save(f, velocities)
         np.save(f, positions)
+        
+    print("Successfull sim !")
 
+    return  vel, pos, delta_time
 """
 ============================================================
 main
@@ -206,15 +216,15 @@ main
 
 
 
-#In this part we will specify the steps position and duration and we will implement foot trajectory generation
-params = {
-    "doubleSupportDuration" : 0.25,
-    "stepDuration" : 1.2,
-    "pelvisHeight" : 0.7,
-    "maximumFootHeight" : 0.07,
-    "stepWidth" :0.12,
-    "stepLength" :0.1,
-    "numberOfFootPrints" :17,
-}
+# #In this part we will specify the steps position and duration and we will implement foot trajectory generation
+# params = {
+#     "doubleSupportDuration" : 0.25,
+#     "stepDuration" : 1.2,
+#     "pelvisHeight" : 0.7,
+#     "maximumFootHeight" : 0.07,
+#     "stepWidth" :0.12,
+#     "stepLength" :0.1,
+#     "numberOfFootPrints" :17,
+# }
 
-walk_run(params)
+# walk_run(params)
