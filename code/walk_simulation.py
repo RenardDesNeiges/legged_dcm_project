@@ -194,6 +194,13 @@ def walk_run(params):
         # simulation step
         pybullet.stepSimulation()
         
+    for i in range(1,1000):
+        velocities.append(pybullet.getBaseVelocity(bodyUniqueId=robotID))
+        positions.append(pybullet.getBasePositionAndOrientation(bodyUniqueId=robotID))
+        pybullet.stepSimulation()
+        
+    pybullet.disconnect()
+        
     vel = np.array(velocities)
     pos = np.array([*np.array(positions)[:,0]])
     delta_time = CoPPositions.shape[0] * DCMPlanner.stepDuration
