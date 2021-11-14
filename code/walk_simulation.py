@@ -10,6 +10,10 @@ from RobotUtils import * # Class related to Inverse Kinematics
 
 def walk_run(params):
 
+    GRAVITY = 9.81
+    cost_of_transport_list = []
+
+    
     """
     ============================================================
         Setting up environment
@@ -30,7 +34,7 @@ def walk_run(params):
     planeID = pybullet.loadURDF("plane.urdf")
     if params["GUI"]:
         pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_RENDERING,0)
-    pybullet.setGravity(0,0,-9.81)
+    pybullet.setGravity(0,0,-GRAVITY)
     atlas=robotID = pybullet.loadURDF("atlas/atlas_v4_with_multisense.urdf", [0,0,0.93],useFixedBase = 0)
     pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_RENDERING,1)
     pybullet.setRealTimeSimulation(0)
@@ -194,12 +198,25 @@ def walk_run(params):
         # simulation step
         pybullet.stepSimulation()
         
+    current_motor_torques = np.array([x[3] for x in pybullet.getJointStates(bodyUniqueId=robotID, jointIndices=jointsIndex)])
+    current_motor_velocities = np.array([x[1] for x in pybullet.getJointStates(bodyUniqueId=robotID, jointIndices=jointsIndex)])
+
+    current_base_velocitites = np.array([x[0] for x in pybullet.getBaseVelocity(bodyUniqueId=robotID)])[0] # get linear x vel
+    current_mass = np.array([x for x in pybullet.getDynamicsInfo(bodyUniqueId=robotID, linkIndex=-1)])[0] # get base weight
+    # HOW TO GET OTHER WEIGHTS????
+
+    current_power = np.dot(current_motor_torques.T, current_motor_velocities)
+    current_cost_of_transport = current_power / (current_mass * GRAVITY * current_base_velocitites)
+    cost_of_transport_list.append(current_cost_of_transport)    
+        
     for i in range(1,1000):
         velocities.append(pybullet.getBaseVelocity(bodyUniqueId=robotID))
         positions.append(pybullet.getBasePositionAndOrientation(bodyUniqueId=robotID))
         pybullet.stepSimulation()
         
     pybullet.disconnect()
+    
+    cost_of_transport = np.sum(np.array(cost_of_transport_list))
         
     vel = np.array(velocities)
     pos = np.array([*np.array(positions)[:,0]])
@@ -214,7 +231,7 @@ def walk_run(params):
         
     print("Successfull sim !")
 
-    return  vel, pos, delta_time
+    return  vel, pos, delta_time, cost_of_transport
 """
 ============================================================
 main
